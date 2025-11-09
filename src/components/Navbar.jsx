@@ -1,18 +1,20 @@
  import { Link, useLocation } from 'react-router-dom';
  import { useAuth } from "../context/AuthContext";
 
- export default function Navbar() {
-   const { user, logout } = useAuth();
-   const { pathname } = useLocation();
+  export default function Navbar() {
+    const { user, logout } = useAuth();
+    const { pathname } = useLocation();
 
-   const isAuthPage = pathname === '/login' || pathname === '/register';
+    if (pathname === '/agendar') return null;
+
+    const isAuthPage = pathname === '/login' || pathname === '/register';
 
    return (
      <header className="nav">
        <div className="nav__inner">
          <Link to="/" className="nav__brand">Gestión de Turnos EPS</Link>
           {!isAuthPage && (
-            <nav className="nav__right">
+             <nav className="nav__right legacy-nav">
               <div className="flex items-center gap-4">
                 {user?.role === "citizen" && (
                   <>

@@ -581,3 +581,16 @@ align-items:center;
 gap:10px;
 
 }
+
+.legacy-nav { display: none !important; }
+
+header > .legacy-nav,
+.topbar .legacy-nav {
+  display: none !important;
+}
+
+.page-breadcrumb { margin-top: .5rem; margin-bottom: .75rem; list-style: none; padding: 0; display: flex; gap: 8px; }
+
+.crumb { color: var(--muted); font-size: .925rem; }
+
+.crumb.active { color: var(--text); font-weight: 600; }

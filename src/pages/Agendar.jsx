@@ -138,15 +138,10 @@ Salir
 
 {/* === BREADCRUMB ================================================= */}
 
-<nav className="ag-bc" aria-label="breadcrumb">
-
-<Link to="/" className="ag-bc-link">Inicio</Link>
-
-<span className="ag-bc-sep">/</span>
-
-<Link to="/agendar" aria-current="page" className="ag-bc-link is-current">Agendar</Link>
-
-</nav>
+<ul className="page-breadcrumb">
+<li><Link to="/agendar" className="crumb">Inicio</Link></li>
+<li><span className="crumb active">Agendar</span></li>
+</ul>
 
 {/* === TíTULO ===================================================== */}
 
