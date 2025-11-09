@@ -5,7 +5,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Navbar from "./components/Navbar";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Schedule from "./pages/Schedule";
+import Agendar from "./pages/Agendar";
 import WaitingRoom from "./pages/WaitingRoom";
 import AdminDashboard from "./pages/AdminDashboard";
 
@@ -22,7 +22,7 @@ export default function App() {
             <Route path="/register" element={<Register />} />
             {/* Ciudadano */}
             <Route element={<ProtectedRoute requireRole="citizen" />}>
-              <Route path="/agendar" element={<Schedule />} />
+              <Route path="/agendar" element={<Agendar />} />
               <Route path="/sala" element={<WaitingRoom />} />
             </Route>
             {/* Admin */}
