@@ -1,0 +1,15 @@
+import { Navigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+
+export function PrivateRoute({ children }) {
+  const { session } = useAuth();
+  if (!session) return <Navigate to="/login" replace />;
+  return children;
+}
+
+export function RoleRoute({ role, children }) {
+  const { session } = useAuth();
+  if (!session) return <Navigate to="/login" replace />;
+  if (role && session.user.role !== role) return <Navigate to="/" replace />;
+  return children;
+}

@@ -1,0 +1,33 @@
+:root{
+
+--brand:#0C89B3;
+
+--ink:#0A5672;
+
+--muted:#5f7f8a;
+
+--bg:#f4fafc;
+
+--white:#fff;
+
+--shadow:0 10px 30px rgba(10,86,114,.10);
+
+--radius:14px;
+
+}
+
+*{box-sizing:border-box}
+
+html,body,#root{height:100%}
+
+body{
+
+margin:0;
+
+font-family:system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji','Segoe UI Emoji', 'Segoe UI Symbol';
+
+background: radial-gradient(1200px 700px at 70% -10%, #e8f6fb, transparent) var(--bg);
+
+color:var(--ink);
+
+}
