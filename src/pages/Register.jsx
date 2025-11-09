@@ -1,102 +1,132 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import '../styles/auth.css';
 
 export default function Register() {
-  const nav = useNavigate();
+  const { register } = useAuth();
+  const navigate = useNavigate();
+  const [nombre, setNombre] = useState("");
+  const [documento, setDocumento] = useState("");
+  const [correo, setCorreo] = useState("");
+  const [password, setPassword] = useState("");
+  const [rol, setRol] = useState("Ciudadano");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const [form, setForm] = useState({
-    fullName: "",
-    document: "",
-    email: "",
-    password: "",
-    role: "citizen",
-  });
-
-  const [errorMsg, setErrorMsg] = useState("");
-
-  const onChange = (e) => {
-    const { name, value } = e.target;
-    setForm((s) => ({ ...s, [name]: value }));
-  };
-
-  const onSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setErrorMsg(""); // limpia error visible
+    setError("");
+    setLoading(true);
+    if (!nombre.trim()) {
+      setError("El nombre es obligatorio");
+      setLoading(false);
+      return;
+    }
+    if (!documento.trim()) {
+      setError("El número de documento es obligatorio");
+      setLoading(false);
+      return;
+    }
+    if (!password || password.length < 6) {
+      setError("La contraseña debe tener al menos 6 caracteres");
+      setLoading(false);
+      return;
+    }
+    if (correo && !/\S+@\S+\.\S+/.test(correo)) {
+      setError("El correo electrónico no es válido");
+      setLoading(false);
+      return;
+    }
     try {
-      // Validaciones básicas (sin back)
-      if (!form.fullName || !form.document || !form.password) {
-        setErrorMsg("Todos los campos obligatorios deben estar completos.");
-        return;
-      }
-      if (form.password.length < 6) {
-        setErrorMsg("La contraseña debe tener mínimo 6 caracteres.");
-        return;
-      }
-      // Simulación de registro OK (NO iniciar sesión aquí)
-      // ...aquí guardarías en API o local, si quisieras
-      nav("/login", { replace: true });
-    } catch (err) {
-      // Nunca uses 'error' sin declararlo. Usa err y muéstralo de forma segura.
-      setErrorMsg("Ocurrió un problema al registrar. Intenta nuevamente.");
-      console.error(err);
+      await register({ name: nombre.trim(), doc: documento.trim(), email: correo.trim(), password, role: rol === "Ciudadano" ? "citizen" : "admin" });
+      setTimeout(()=>navigate("/login", { replace:true }), 800);
+      setLoading(false);
+    } catch (error) {
+      setError(error.message || "Error al registrarse");
+      setLoading(false);
     }
   };
 
   return (
-    <div className="page-center">
-      <form className="card max-w-md w-full" onSubmit={onSubmit}>
-        <h1 className="h4 mb-3">Crear cuenta</h1>
-        {errorMsg && (
-          <div className="alert alert-danger mb-3">{errorMsg}</div>
-        )}
-        <label className="label">Nombre completo</label>
-        <input
-          className="input mb-2"
-          name="fullName"
-          value={form.fullName}
-          onChange={onChange}
-          placeholder="Tu nombre"
-        />
-        <label className="label">Número de documento</label>
-        <input
-          className="input mb-2"
-          name="document"
-          value={form.document}
-          onChange={onChange}
-          placeholder="123456789"
-        />
-        <label className="label">Correo (opcional)</label>
-        <input
-          className="input mb-2"
-          name="email"
-          value={form.email}
-          onChange={onChange}
-          placeholder="tucorreo@correo.com"
-        />
-        <label className="label">Contraseña</label>
-        <input
-          className="input mb-4"
-          type="password"
-          name="password"
-          value={form.password}
-          onChange={onChange}
-          placeholder="Mínimo 6 caracteres"
-        />
-        {/* selector de rol visible solo en demo */}
-        <label className="label">Rol (solo demo)</label>
-        <select
-          className="input mb-4"
-          name="role"
-          value={form.role}
-          onChange={onChange}
-        >
-          <option value="citizen">Ciudadano</option>
-          <option value="admin">Administrador</option>
-        </select>
-        <button className="btn btn-brand w-full" type="submit">
-          Registrarse
-        </button>
-      </form>
-    </div>
-  );
+<main className="auth-page">
+<section className="auth-card" role="form" aria-labelledby="registerTitle">
+<header className="auth-card__header">
+<h1 id="registerTitle" className="auth-card__title">Crear cuenta</h1>
+<p className="auth-card__subtitle">Completa los campos para registrarte.</p>
+</header>
+{error && <div className="auth-alert">{error}</div>}
+<form onSubmit={handleSubmit}>
+<div className="auth-card__group">
+<label className="auth-label" htmlFor="name">Nombre completo</label>
+<input
+id="name"
+className="auth-input"
+type="text"
+placeholder="Tu nombre"
+value={nombre}
+onChange={e => setNombre(e.target.value)}
+required
+/>
+</div>
+<div className="auth-card__group">
+<label className="auth-label" htmlFor="doc">Número de documento</label>
+<input
+id="doc"
+className="auth-input"
+type="text"
+placeholder="123456789"
+value={documento}
+onChange={e => setDocumento(e.target.value)}
+required
+/>
+</div>
+<div className="auth-card__group">
+<label className="auth-label" htmlFor="mail">Correo (opcional)</label>
+<input
+id="mail"
+className="auth-input"
+type="email"
+placeholder="tucorreo@correo.com"
+value={correo}
+onChange={e => setCorreo(e.target.value)}
+/>
+</div>
+<div className="auth-card__group">
+<label className="auth-label" htmlFor="pwd">Contraseña</label>
+<input
+id="pwd"
+className="auth-input"
+type="password"
+placeholder="Mínimo 6 caracteres"
+value={password}
+onChange={e => setPassword(e.target.value)}
+required
+minLength={6}
+/>
+</div>
+{/* Mantén tu selector de rol EXACTAMENTE igual */}
+<div className="auth-card__group">
+<label className="auth-label" htmlFor="rol">Rol (solo demo)</label>
+<select
+id="rol"
+className="auth-input"
+value={rol}
+onChange={(e) => setRol(e.target.value)}
+>
+<option>Ciudadano</option>
+<option>Administrador</option>
+</select>
+</div>
+<button className="auth-btn" type="submit" disabled={loading}>
+{loading ? 'Creando' : 'Registrarse'}
+</button>
+</form>
+<p className="auth-footer">
+¿Ya tienes cuenta?
+<Link to="/login" className="auth-link">Inicia sesión</Link>
+</p>
+</section>
+</main>
+);
 }

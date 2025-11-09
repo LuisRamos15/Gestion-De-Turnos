@@ -1,0 +1,100 @@
+/* Agendar Head Styles */
+
+.ag-page {
+  /* Similar to .page, assuming it's the main container */
+}
+
+.ag-page ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ag-topbar{
+
+display:flex; align-items:center; justify-content:space-between;
+
+padding:12px 14px;
+
+background: linear-gradient(to bottom, #f9fdff, #e9f4f8); box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+font-family: 'Inter', 'Poppins', sans-serif; font-size: 16px;
+
+}
+
+.ag-brand{ display:flex; align-items:center; gap:10px; }
+
+.ag-logo-dot{
+
+width:12px; height:12px; border-radius:999px; background:var(--c-primary);
+
+box-shadow:0 0 0 4px rgba(12,137,179,.12);
+
+}
+
+.ag-brand-text{ color:#0A5672; font-weight:600; letter-spacing:.2px; }
+
+.ag-actions{ display:flex; gap:1rem; }
+
+.ag-btn {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 500;
+  transition: all 0.2s;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.ag-btn-ghost {
+  background: #0C89B3;
+  color: white;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.ag-btn-ghost:hover {
+  background: #0A5672;
+}
+
+.ag-btn-outline-danger {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.ag-btn-outline-danger:hover {
+  background: #c0392b;
+}
+
+.ag-bc{ display:flex; align-items:center; gap:8px; margin:14px 2px 8px; list-style:none; padding:0;}
+
+.ag-bc-link{ display:inline-flex; align-items:center; gap:8px; padding:6px 12px; border-radius:999px; border:1px solid var(--border-soft); background:#f5fbfe; color:var(--c-ink); text-decoration:none; font-weight:600; }
+
+.ag-bc-link:hover{ border-color:#cfe8ef; }
+
+.ag-bc-link.is-current{ background:var(--c-primary); color:#fff; border-color:transparent; pointer-events:none; }
+
+.ag-bc-sep{ color:#9ab7c1; user-select:none; }
+
+.ag-head {
+  margin: 2px 2px 16px;
+}
+
+.ag-title {
+  margin: 0 0 4px;
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--c-ink);
+}
+
+.ag-subtitle {
+  margin: 0;
+  color: var(--text-muted);
+  font-weight: 600;
+}

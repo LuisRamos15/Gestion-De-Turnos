@@ -1,26 +1,44 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 
 import Section from '../components/Section'
 
 import { useApp } from '../state/AppContext'
 import { useAuth } from '../context/AuthContext'
+import '../styles/agendar-head.css'
 
 export default function WaitingRoom(){
 
-const { data } = useApp()
- const { session } = useAuth()
+ const { data } = useApp()
+  const { user, logout } = useAuth()
 
- const [turnos, setTurnos] = useState(data.listTurnos())
+  const handleLogout = () => logout()
 
- useEffect(()=>{ const fn = ()=> setTurnos(data.listTurnos()); window.addEventListener('sim-tick', fn); return ()=> window.removeEventListener('sim-tick', fn) },[data])
+  const [turnos, setTurnos] = useState(data.listTurnos())
 
-  const mis = useMemo(()=> turnos.filter(t=> t.userId === (session?.id || 'anon')), [turnos, session])
+  useEffect(()=>{ const fn = ()=> setTurnos(data.listTurnos()); window.addEventListener('sim-tick', fn); return ()=> window.removeEventListener('sim-tick', fn) },[data])
+
+   const mis = useMemo(()=> turnos.filter(t=> t.userId === (user?.doc || 'anon')), [turnos, user])
 
 const ultimo = mis[mis.length-1]
 
-return (
+  return (
 
-<Section title="Sala de Espera Virtual" subtitle="Actualizaciones en tiempo real (simuladas)">
+<div className="ag-page">
+
+<div className="ag-topbar">
+  <div className="ag-brand">
+    <div className="ag-logo-dot"></div>
+    <span className="ag-brand-text">Gestión de Turnos <b>EPS</b></span>
+  </div>
+  <div className="ag-actions">
+    <Link to="/agendar" className="ag-btn ag-btn-ghost">Agendar</Link>
+    <Link to="/sala" className="ag-btn ag-btn-ghost">Sala</Link>
+    <button onClick={handleLogout} className="ag-btn ag-btn-outline-danger">Salir</button>
+  </div>
+</div>
+
+  <Section title="Sala de Espera Virtual" subtitle="Actualizaciones en tiempo real (simuladas)">
 
 <div className="card stack">
 
@@ -57,6 +75,8 @@ return (
 </div>
 
 </Section>
+
+</div>
 
 )
 

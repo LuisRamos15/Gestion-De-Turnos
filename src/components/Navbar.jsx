@@ -1,43 +1,35 @@
-import { Link, NavLink, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+ import { Link, useLocation } from 'react-router-dom';
+ import { useAuth } from "../context/AuthContext";
 
-export default function Navbar() {
-  const { session, isAdmin, logout } = useAuth();
-  const nav = useNavigate();
+ export default function Navbar() {
+   const { user, logout } = useAuth();
+   const { pathname } = useLocation();
 
-  const doLogout = () => {
-    logout();
-    nav("/login", { replace: true });
-  };
+   const isAuthPage = pathname === '/login' || pathname === '/register';
 
-  return (
-    <header className="topbar">
-      <nav className="container flex items-center justify-between">
-        <Link to={session ? (isAdmin ? "/admin" : "/schedule") : "/login"} className="brand">
-          Gestión de Turnos EPS
-        </Link>
-        <ul className="flex items-center gap-4">
-          {session ? (
-            <>
-              {!isAdmin && (
-                <>
-                  <li><NavLink to="/schedule">Agendar</NavLink></li>
-                  <li><NavLink to="/room">Sala</NavLink></li>
-                </>
-              )}
-              {isAdmin && (
-                <li><NavLink to="/admin">Dashboard</NavLink></li>
-              )}
-              <li><button className="btn-ghost" onClick={doLogout}>Salir</button></li>
-            </>
-          ) : (
-            <>
-              <li><NavLink to="/login">Iniciar sesión</NavLink></li>
-              <li><NavLink to="/register">Registrarse</NavLink></li>
-            </>
+   return (
+     <header className="nav">
+       <div className="nav__inner">
+         <Link to="/" className="nav__brand">Gestión de Turnos EPS</Link>
+          {!isAuthPage && (
+            <nav className="nav__right">
+              <div className="flex items-center gap-4">
+                {user?.role === "citizen" && (
+                  <>
+                    <Link to="/agendar">Agendar</Link>
+                    <Link to="/sala">Sala</Link>
+                  </>
+                )}
+                {user?.role === "admin" && (
+                  <Link to="/admin">Dashboard</Link>
+                )}
+                {user && (
+                  <button className="btn-danger-outline" onClick={logout}>Salir</button>
+                )}
+              </div>
+            </nav>
           )}
-        </ul>
-      </nav>
-    </header>
-  );
+       </div>
+     </header>
+   );
 }

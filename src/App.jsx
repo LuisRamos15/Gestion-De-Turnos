@@ -1,7 +1,7 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { AppProvider } from "./state/AppContext.jsx";
-import { ProtectedRoute, GuestOnly } from "./router/guards";
+import ProtectedRoute from "./components/ProtectedRoute";
 import Navbar from "./components/Navbar";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -15,24 +15,23 @@ export default function App() {
       <AppProvider>
         <AuthProvider>
           <Navbar />
-        <Routes>
-          {/* Invitados */}
-          <Route element={<GuestOnly />}>
+          <Routes>
+            {/* Público */}
+            <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-          </Route>
-          {/* Ciudadano + Admin */}
-          <Route element={<ProtectedRoute roles={["citizen", "admin"]} />}>
-            <Route path="/schedule" element={<Schedule />} />
-            <Route path="/room" element={<WaitingRoom />} />
-          </Route>
-          {/* Solo Admin */}
-          <Route element={<ProtectedRoute roles={["admin"]} />}>
-            <Route path="/admin" element={<AdminDashboard />} />
-          </Route>
-          {/* Fallback */}
-          <Route path="*" element={<Login />} />
-        </Routes>
+            {/* Ciudadano */}
+            <Route element={<ProtectedRoute requireRole="citizen" />}>
+              <Route path="/agendar" element={<Schedule />} />
+              <Route path="/sala" element={<WaitingRoom />} />
+            </Route>
+            {/* Admin */}
+            <Route element={<ProtectedRoute requireRole="admin" />}>
+              <Route path="/admin" element={<AdminDashboard />} />
+            </Route>
+            {/* 404 simple */}
+            <Route path="*" element={<Navigate to="/login" />} />
+          </Routes>
         </AuthProvider>
       </AppProvider>
     </BrowserRouter>

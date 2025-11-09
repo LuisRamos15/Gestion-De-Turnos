@@ -5,7 +5,7 @@ import PrivateRoute from "./components/PrivateRoute";
 import RoleRoute from "./components/RoleRoute";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Schedule from "./pages/Schedule";
+import Agendar from "./pages/Agendar";
 import QueueRoom from "./pages/WaitingRoom";
 import AdminDashboard from "./pages/AdminDashboard";
 import Operativo from "./pages/Operativo";
@@ -29,7 +29,7 @@ const router = createBrowserRouter([
         path: "/",
         element: <AppLayout />,
         children: [
-          { path: "agendar", element: <Schedule /> },
+          { path: "agendar", element: <Agendar /> },
            { path: "sala", element: <QueueRoom /> },
           { path: "operativo", element: <Operativo /> },
             {

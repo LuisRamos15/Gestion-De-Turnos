@@ -1,16 +1,16 @@
 import { useEffect, useMemo, useState } from 'react'
-
-
-
-import Section from '../components/Section'
+import { Link } from 'react-router-dom'
 
 import { useApp } from '../state/AppContext'
 import { useAuth } from '../context/AuthContext'
+import '../styles/agendar-head.css'
 
-export default function Schedule(){
+export default function Agendar(){
 
-const { data } = useApp()
- const { session } = useAuth()
+ const { data } = useApp()
+  const { user, logout } = useAuth()
+
+
 
 // Config base (sedes, especialidades, profesionales)
 
@@ -86,7 +86,7 @@ try{
 
  const t = data.crearTurno({
 
-  userId: session?.id || 'anon',
+  userId: user?.doc || 'anon',
 
 sede, especialidad, profesional: prof,
 
@@ -106,9 +106,59 @@ setMessage(` ${err.message}`);
 
 }
 
-return (
+  return (
 
-<Section title="Agendar Turno" subtitle="Paso 1 de 3  Sede y Especialidad">
+  <div className="ag-page">
+
+{/* === TOPBAR ===================================================== */}
+
+<div className="ag-topbar">
+
+<div className="ag-brand">
+
+<span className="ag-logo-dot" />
+
+<span className="ag-brand-text">Gestión de Turnos <b>EPS</b></span>
+
+</div>
+
+<div className="ag-actions">
+
+<Link to="/sala" className="ag-btn ag-btn-ghost">Sala</Link>
+
+<button onClick={logout} className="ag-btn ag-btn-outline-danger">
+
+Salir
+
+</button>
+
+</div>
+
+</div>
+
+{/* === BREADCRUMB ================================================= */}
+
+<nav className="ag-bc" aria-label="breadcrumb">
+
+<Link to="/" className="ag-bc-link">Inicio</Link>
+
+<span className="ag-bc-sep">/</span>
+
+<Link to="/agendar" aria-current="page" className="ag-bc-link is-current">Agendar</Link>
+
+</nav>
+
+{/* === TíTULO ===================================================== */}
+
+<header className="ag-head">
+
+<h1 className="ag-title">Agendar turno</h1>
+
+<p className="ag-subtitle">Paso 1 de 3  Sede y Especialidad</p>
+
+</header>
+
+<div className="stack">
 
 <div className="two-col">
 
@@ -256,12 +306,14 @@ title={s.status==='taken' ? 'Ocupada' : 'Disponible'}
 
 Consejo  La espera estimada se aproxima como (turnos pendientes  5 min).
 
-</div>
+  </div>
 
 </div>
 
-</Section>
+  </div>
 
-)
+  </div>
+
+ )
 
 }
