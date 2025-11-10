@@ -1,9 +1,11 @@
- import { Link, useLocation } from 'react-router-dom';
- import { useAuth } from "../context/AuthContext";
+  import { Link, useLocation } from 'react-router-dom';
+  import { useAuth } from "../context/AuthContext";
 
-  export default function Navbar() {
-    const { user, logout } = useAuth();
-    const { pathname } = useLocation();
+   export default function Navbar() {
+     const auth = useAuth?.();
+     const user = auth?.user ?? null;
+     const logout = auth?.logout;
+     const { pathname } = useLocation();
 
     if (pathname === '/agendar') return null;
 

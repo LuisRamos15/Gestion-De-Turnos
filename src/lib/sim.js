@@ -10,17 +10,17 @@ const arr = listTurnos()
 
 const pendientes = arr.filter(t=>t.estado==='pendiente')
 
-if(pendientes.length){
+ if(pendientes.length){
 
-const t = pendientes.sort((a,b)=> new Date(a.createdAtISO)-new Date(b.createdAtISO))[0]
+ const t = pendientes.sort((a,b)=> new Date(a.createdAtISO)-new Date(b.createdAtISO))[0]
 
-actualizarTurno(t.id, {estado:'en_atencion'})
+ actualizarTurno(t.id, {estado:'en_atencion', inicio: new Date().toISOString()})
 
-}else{
+ }else{
 
-const enAt = arr.find(t=>t.estado==='en_atencion')
+ const enAt = arr.find(t=>t.estado==='en_atencion')
 
-if(enAt) actualizarTurno(enAt.id, {estado:'finalizado'})
+ if(enAt) actualizarTurno(enAt.id, {estado:'finalizado', fin: new Date().toISOString()})
 
 }
 

@@ -1,16 +1,7 @@
 import * as s from './storage'
+import { SLOT_MIN, RANGES, SAMPLE_USERS, SAMPLE_CONFIG, SAMPLE_TURNOS } from '../config/bookingData.js'
 
 // === Slots de agenda (laboral simulado) ===
-
-const SLOT_MIN = 30; // minutos por franja
-
-const RANGES = [
-
-{ start: '08:00', end: '12:00' }, // mañana
-
-{ start: '14:00', end: '17:00' }, // tarde
-
-];
 
 function toMinutes(hhmm){
 
@@ -94,56 +85,32 @@ const KEYS = {
   users: 'users',
   session: 'usuario',
   config: 'config',
-  turnos: 'turnos'
+  turnos: 'eps_tickets'
 }
 
 export function seed(){
 
 if(!s.read(KEYS.users)){
 
-s.write(KEYS.users, [
-
-{id:'cc-100', rol:'ciudadano', nombre:'Ana Ciudadana', email:'ana@demo.com', documento:'100', password:'123456'},
-
-{id:'cc-200', rol:'operativo', nombre:'Oscar Operativo', email:'oscar@demo.com', documento:'200', password:'123456'},
-
-{id:'cc-999', rol:'admin', nombre:'Ada Admin', email:'admin@demo.com', documento:'999', password:'admin123'}
-
-])
+s.write(KEYS.users, SAMPLE_USERS)
 
 }
 
 if(!s.read(KEYS.config)){
 
-s.write(KEYS.config, {
-
-sedes:['Clínica Central','Clínica Norte'],
-
-especialidades:['Cardiología','Neurología','Oftalmología','Dermatología','Pediatría','Psicología'],
-
-profesionales:[
-
-{id:'p1', nombre:'Dra. Rojas', especialidad:'Oftalmología', sede:'Clínica Central'},
-
-{id:'p2', nombre:'Dr. Suárez', especialidad:'Cardiología', sede:'Clínica Central'},
-
-{id:'p3', nombre:'Dra. Niño', especialidad:'Dermatología', sede:'Clínica Norte'}
-
-]
-
-})
+s.write(KEYS.config, SAMPLE_CONFIG)
 
 }
 
-if(s.read(KEYS.turnos, []).length === 0){
-  const ahora = new Date()
-  const base = ahora.toISOString()
-  const turnos = []
-  turnos.push({ id: crypto.randomUUID(), userId:'cc-100', sede:'Clínica Central', especialidad:'Cardiología', profesional:'p2', fechaISO: base, hora:'08:00', estado:'pendiente', createdAtISO: base })
-  turnos.push({ id: crypto.randomUUID(), userId:'cc-100', sede:'Clínica Norte', especialidad:'Dermatología', profesional:'p3', fechaISO: base, hora:'08:30', estado:'finalizado', createdAtISO: base })
-  turnos.push({ id: crypto.randomUUID(), userId:'cc-100', sede:'Clínica Norte', especialidad:'Dermatología', profesional:'p3', fechaISO: base, hora:'10:00', estado:'pendiente', createdAtISO: base })
-  s.write(KEYS.turnos, turnos)
-}
+ if(s.read(KEYS.turnos, []).length === 0){
+   const ahora = new Date()
+   const base = ahora.toISOString()
+   const turnos = []
+   turnos.push({ id: crypto.randomUUID(), userId:'cc-100', sede:'Clínica Central', especialidad:'Cardiología', profesional:'Dr. Suárez', fechaISO: base, hora:'08:00', estado:'pendiente', createdAtISO: base })
+   turnos.push({ id: crypto.randomUUID(), userId:'cc-100', sede:'Clínica Norte', especialidad:'Dermatología', profesional:'Dra. Niño', fechaISO: base, hora:'08:30', estado:'finalizado', createdAtISO: base })
+   turnos.push({ id: crypto.randomUUID(), userId:'cc-100', sede:'Clínica Norte', especialidad:'Dermatología', profesional:'Dra. Niño', fechaISO: base, hora:'10:00', estado:'pendiente', createdAtISO: base })
+   s.write(KEYS.turnos, turnos)
+ }
 
 }
 
@@ -257,24 +224,36 @@ return null
 
 export const getConfig = ()=> s.read(KEYS.config)
 
-const isToday = (iso)=> new Date(iso).toDateString() === new Date().toDateString()
-
 export function kpis(){
 
-const arr = listTurnos().filter(t=> isToday(t.createdAtISO) || isToday(t.fechaISO||t.createdAtISO))
+ const tickets = listTurnos()
 
-const atendidos = arr.filter(t=>t.estado==='finalizado').length
+ const latest = [...tickets]
 
-const pendientes = arr.filter(t=>t.estado==='pendiente' || t.estado==='en_atencion').length
+ .sort((a, b) => new Date(b?.createdAtISO || b?.inicio || 0) - new Date(a?.createdAtISO || a?.inicio || 0))
 
-const cancelados = arr.filter(t=>t.estado==='cancelado').length
+ .slice(0, 6);
 
-const totalFin = atendidos + cancelados
+ const atendidos = latest.filter(t => t?.estado === "finalizado").length;
 
-const tasaCancel = totalFin? Math.round((cancelados/totalFin)*100) : 0
+ const pendientes = latest.filter(t => t?.estado === "pendiente" || t?.estado === "en_atencion").length;
 
-const tiempoProm = 15
+ const cancelados = latest.filter(t => t?.estado === "cancelado").length;
 
-return { atendidos, pendientes, tasaCancel, tiempoProm }
+ const total = latest.length || 1;
+
+ const tasaCancel = Math.round((cancelados / total) * 100);
+
+ const durables = latest.filter(t => t?.inicio && t?.fin);
+
+ const avgMs = durables.length
+
+ ? durables.reduce((acc, t) => acc + (new Date(t.fin) - new Date(t.inicio)), 0) / durables.length
+
+ : 15 * 60 * 1000;
+
+ const tiempoProm = Math.max(1, Math.round(avgMs / 60000));
+
+ return { atendidos, pendientes, tasaCancel, tiempoProm }
 
 }

@@ -1,32 +1,46 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import { useApp } from '../state/AppContext'
 import { useAuth } from '../context/AuthContext'
+import { CLINICS, SPECIALTIES, PROFESSIONALS } from '../config/bookingData'
 import '../styles/agendar-head.css'
 
 export default function Agendar(){
 
- const { data } = useApp()
-  const { user, logout } = useAuth()
+  const { data } = useApp()
+    const { user, logout } = useAuth()
 
+  // Estado del formulario
 
+ const [clinic, setClinic] = useState("")
 
-// Config base (sedes, especialidades, profesionales)
+ const [specialty, setSpecialty] = useState("")
 
-const cfg = data.getConfig()
+ const [professional, setProfessional] = useState("")
 
-// Estado del formulario
+ const [fecha, setFecha] = useState(new Date().toISOString().slice(0,10))
 
-const [sede, setSede] = useState(cfg.sedes[0] || '')
+ const [hora, setHora] = useState('08:00')
 
-const [especialidad, setEsp] = useState(cfg.especialidades[0] || '')
+ // Resets en cascada
 
-const [prof, setProf] = useState('')
+ const onChangeClinic = (e) => {
+   const value = e.target.value;
+   setClinic(value);
+   setSpecialty("");
+   setProfessional("");
+ };
 
-const [fecha, setFecha] = useState(new Date().toISOString().slice(0,10))
+ const onChangeSpecialty = (e) => {
+   const value = e.target.value;
+   setSpecialty(value);
+   setProfessional("");
+ };
 
-const [hora, setHora] = useState('08:00')
+ // Opciones derivadas
+
+ const availableProfessionals = (clinic && specialty && PROFESSIONALS[clinic]?.[specialty]) || [];
 
 // NUEVO: slots del día e indicador de selección
 
@@ -36,75 +50,57 @@ const [slots, setSlots] = useState([]);      // [{time:'08:00', status:'free'|'t
 
 const [message, setMessage] = useState('')
 
-// Filtra profesionales según sede + especialidad
 
-const opcionesProf = useMemo(() => {
 
-return cfg.profesionales.filter(
+ // NUEVO: refrescar slots
 
-(p) => p.especialidad === especialidad && p.sede === sede
+ useEffect(()=>{
 
-)
+ if (!professional || !fecha) { setSlots([]); return; }
 
-}, [cfg, sede, especialidad])
+ const s = data.availableSlots({ profId: professional, dateISO: fecha });
 
-// Cuando cambian filtros, setear el primer profesional disponible
+ setSlots(s);
 
-useEffect(() => {
+ // si la hora actual está tomada, autoselecciona la primera libre
 
-setProf(opcionesProf[0]?.id || '')
+ const firstFree = s.find(x=>x.status==='free');
 
-}, [opcionesProf])
+ if (firstFree) setHora(firstFree.time);
 
-// NUEVO: refrescar slots
+ }, [professional, fecha, data])
 
-useEffect(()=>{
+ // Crear turno
 
-if (!prof || !fecha) { setSlots([]); return; }
+ const crear = (e) => {
 
-const s = data.availableSlots({ profId: prof, dateISO: fecha });
+ e.preventDefault();
 
-setSlots(s);
+ setMessage('');
 
-// si la hora actual está tomada, autoselecciona la primera libre
+ try{
 
-const firstFree = s.find(x=>x.status==='free');
+  const t = data.crearTurno({
 
-if (firstFree) setHora(firstFree.time);
+   userId: user?.doc || 'anon',
 
-}, [prof, fecha, data])
+ sede: clinic, especialidad: specialty, profesional: professional,
 
-// Crear turno
+ fechaISO: fecha, hora
 
-const crear = (e) => {
+ });
 
-e.preventDefault();
+ setMessage(` Turno #${t.id.slice(0,6)} creado. Te llevamos a la Sala de Espera`);
 
-setMessage('');
+  setTimeout(()=> window.location.href='/sala', 1200);
 
-try{
+ }catch(err){
 
- const t = data.crearTurno({
+ setMessage(` ${err.message}`);
 
-  userId: user?.doc || 'anon',
+ }
 
-sede, especialidad, profesional: prof,
-
-fechaISO: fecha, hora
-
-});
-
-setMessage(` Turno #${t.id.slice(0,6)} creado. Te llevamos a la Sala de Espera`);
-
- setTimeout(()=> window.location.href='/room', 1200);
-
-}catch(err){
-
-setMessage(` ${err.message}`);
-
-}
-
-}
+ }
 
   return (
 
@@ -159,51 +155,75 @@ Salir
 
 <div className="card stack">
 
-<div className="stack">
+ <div className="stack">
 
-<label>Sede de atención</label>
+ <label>Sede de atención</label>
 
-<select value={sede} onChange={(e)=>setSede(e.target.value)}>
+ <select className="form-select" value={clinic} onChange={onChangeClinic}>
 
-{cfg.sedes.map((x) => (
+ <option value="" disabled>Seleccione sede</option>
 
-<option key={x} value={x}>{x}</option>
+ {CLINICS.map((c) => (
 
-))}
+ <option key={c} value={c}>{c}</option>
 
-</select>
+ ))}
 
-</div>
+ </select>
 
-<div className="stack">
+ </div>
 
-<label>Especialidad</label>
+ <div className="stack">
 
-<select value={especialidad} onChange={(e)=>setEsp(e.target.value)}>
+ <label>Especialidad</label>
 
-{cfg.especialidades.map((x) => (
+ <select className="form-select" value={specialty} onChange={onChangeSpecialty} disabled={!clinic}>
 
-<option key={x} value={x}>{x}</option>
+ <option value="" disabled>Seleccione especialidad</option>
 
-))}
+ {SPECIALTIES.map((s) => (
 
-</select>
+ <option key={s} value={s}>{s}</option>
 
-</div>
+ ))}
 
-</div>
+ </select>
 
-<div className="card stack">
-
-<h3>Profesionales disponibles</h3>
-
-{opcionesProf.map((p) => (
-
-<div key={p.id} className="prof">{p.nombre} - {p.especialidad}</div>
-
-))}
+ </div>
 
 </div>
+
+ <div className="card stack">
+
+ <h3>Profesionales disponibles</h3>
+
+ {clinic && specialty ? (
+
+ availableProfessionals.length > 0 ? (
+
+ <ul className="list-unstyled m-0">
+
+ {availableProfessionals.map((p) => (
+
+ <li key={p}>{p} - {specialty}</li>
+
+ ))}
+
+ </ul>
+
+ ) : (
+
+ <span className="text-muted">No hay profesionales para esta combinación.</span>
+
+ )
+
+ ) : (
+
+ <span className="text-muted">Selecciona sede y especialidad para ver profesionales.</span>
+
+ )}
+
+ </div>
 
 </div>
 
@@ -211,21 +231,23 @@ Salir
 
 <h3>Paso 2 de 3  Seleccionar Profesional</h3>
 
-<div className="stack">
+ <div className="stack">
 
-<label>Profesional</label>
+ <label>Profesional</label>
 
-<select value={prof} onChange={(e)=>setProf(e.target.value)}>
+ <select className="form-select" value={professional} onChange={(e) => setProfessional(e.target.value)} disabled={availableProfessionals.length === 0}>
 
-{opcionesProf.map((p) => (
+ <option value="" disabled>Seleccione profesional</option>
 
-<option key={p.id} value={p.id}>{p.nombre}</option>
+ {availableProfessionals.map((p) => (
 
-))}
+ <option key={p} value={p}>{p}</option>
 
-</select>
+ ))}
 
-</div>
+ </select>
+
+ </div>
 
 </div>
 
@@ -287,9 +309,9 @@ title={s.status==='taken' ? 'Ocupada' : 'Disponible'}
 
 </div>
 
-{message ? <div className="subtitle">{message}</div> : null}
+ {message ? <div className="subtitle">{message}</div> : null}
 
-<button className="btn primary block">Agendar Turno</button>
+ <button className="btn primary block" disabled={!clinic || !specialty || !professional}>Agendar Turno</button>
 
 </form>
 

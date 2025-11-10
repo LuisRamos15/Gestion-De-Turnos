@@ -11,7 +11,7 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
@@ -25,14 +25,18 @@ export default function Login() {
       setLoading(false);
       return;
     }
-    try {
-      const u = await login({ doc: documento.trim(), password });
-      navigate(u.role === "admin" ? "/admin" : "/agendar", { replace: true });
+    const result = login(documento.trim(), password);
+    if (!result.ok) {
+      setError(result.message);
       setLoading(false);
-    } catch (error) {
-      setError(error.message || "Error al iniciar sesión");
-      setLoading(false);
+      return;
     }
+    if (result.role === "Administrador") {
+      navigate("/admin");
+    } else {
+      navigate("/agendar");
+    }
+    setLoading(false);
   };
 
   return (

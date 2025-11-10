@@ -1,64 +1,49 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useMemo, useState } from "react";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);   // { doc, name, role: 'admin' | 'citizen' }
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(() => {
+    const raw = localStorage.getItem("session");
+    return raw ? JSON.parse(raw) : null;
+  });
 
-  // Cargar sesión persistida
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem("eps:user");
-      if (raw) setUser(JSON.parse(raw));
-    } catch (e) {
-      console.error("Error loading user session:", e);
+  const login = (documento, password) => {
+    const raw = localStorage.getItem("users");
+    const users = raw ? JSON.parse(raw) : [];
+    // 2) Buscar coincidencia EXACTA
+    const found = users.find(
+      (u) => String(u.documento) === String(documento) && u.password === password
+    );
+    if (!found) {
+      // NO sesión por defecto, NO auto-registro
+      return { ok: false, message: "Documento o contraseña incorrectos." };
     }
-    setLoading(false);
-  }, []);
-
-  const login = async ({ doc, password }) => {
-    // DEMO: lógica mínima de rol (ajusta con backend real cuando exista)
-    // Admin demo: documento 999 o rol admin guardado al registrar
-    if (!doc || !password) throw new Error("Documento y contraseña son obligatorios");
-
-    // Si existe un usuario guardado con ese doc, usar su rol
-    const savedUsers = JSON.parse(localStorage.getItem("eps:users") || "[]");
-    const found = savedUsers.find(u => u.doc === doc && u.password === password);
-    let role = "citizen";
-    let name = "Usuario";
-    if (found) {
-      role = found.role || "citizen";
-      name = found.name || "Usuario";
-    } else if (doc === "999" && password === "admin") {
-      role = "admin";
-      name = "Admin Demo";
-    }
-    const nextUser = { doc, name, role };
-    localStorage.setItem("eps:user", JSON.stringify(nextUser));
-    setUser(nextUser);
-    return nextUser;
+    // 3) Iniciar sesión con el usuario encontrado
+    const session = { id: found.id, nombre: found.nombre, documento: found.documento, role: found.role };
+    setUser(session);
+    localStorage.setItem("session", JSON.stringify(session));
+    return { ok: true, role: found.role };
   };
 
-  const register = async ({ name, doc, email, password, role = "citizen" }) => {
-    if (!name || !doc || !password) throw new Error("Completa nombre, documento y contraseña");
-    const users = JSON.parse(localStorage.getItem("eps:users") || "[]");
-    if (users.some(u => u.doc === doc)) throw new Error("El documento ya está registrado");
-    const newUser = { name, doc, email, password, role };
+  const register = ({ nombre, documento, email, password, role = "Ciudadano" }) => {
+    if (!nombre || !documento || !password) throw new Error("Completa nombre, documento y contraseña");
+    const users = JSON.parse(localStorage.getItem("users") || "[]");
+    if (users.some(u => u.documento === documento)) throw new Error("El documento ya está registrado");
+    const newUser = { id: Date.now(), nombre, documento, email, password, role };
     users.push(newUser);
-    localStorage.setItem("eps:users", JSON.stringify(users));
-    // No iniciar sesión automática: regresar al login con aviso
+    localStorage.setItem("users", JSON.stringify(users));
     return true;
   };
 
   const logout = () => {
-    localStorage.removeItem("eps:user");
     setUser(null);
+    localStorage.removeItem("session");
   };
 
   const value = useMemo(
-    () => ({ user, loading, login, logout, register }),
-    [user, loading]
+    () => ({ user, login, logout, register }),
+    [user]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -1,39 +1,23 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "./context/AuthContext";
-import { AppProvider } from "./state/AppContext.jsx";
-import ProtectedRoute from "./components/ProtectedRoute";
-import Navbar from "./components/Navbar";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Agendar from "./pages/Agendar";
 import WaitingRoom from "./pages/WaitingRoom";
 import AdminDashboard from "./pages/AdminDashboard";
+import ProtectedRoute from "./routes/ProtectedRoute";
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <AppProvider>
-        <AuthProvider>
-          <Navbar />
-          <Routes>
-            {/* Público */}
-            <Route path="/" element={<Navigate to="/login" replace />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            {/* Ciudadano */}
-            <Route element={<ProtectedRoute requireRole="citizen" />}>
-              <Route path="/agendar" element={<Agendar />} />
-              <Route path="/sala" element={<WaitingRoom />} />
-            </Route>
-            {/* Admin */}
-            <Route element={<ProtectedRoute requireRole="admin" />}>
-              <Route path="/admin" element={<AdminDashboard />} />
-            </Route>
-            {/* 404 simple */}
-            <Route path="*" element={<Navigate to="/login" />} />
-          </Routes>
-        </AuthProvider>
-      </AppProvider>
-    </BrowserRouter>
+    <Routes>
+      <Route path="/" element={<Navigate to="/login" replace />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route element={<ProtectedRoute />}>
+        <Route path="/agendar" element={<Agendar />} />
+        <Route path="/sala" element={<WaitingRoom />} />
+        <Route path="/admin" element={<AdminDashboard />} />
+      </Route>
+      <Route path="*" element={<Navigate to="/login" replace />} />
+    </Routes>
   );
 }

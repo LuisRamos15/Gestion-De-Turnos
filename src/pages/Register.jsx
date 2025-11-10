@@ -1,51 +1,55 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
 import '../styles/auth.css';
 
 export default function Register() {
-  const { register } = useAuth();
   const navigate = useNavigate();
-  const [nombre, setNombre] = useState("");
-  const [documento, setDocumento] = useState("");
-  const [correo, setCorreo] = useState("");
-  const [password, setPassword] = useState("");
-  const [rol, setRol] = useState("Ciudadano");
+  const [form, setForm] = useState({
+    nombre: "",
+    documento: "",
+    email: "",
+    password: "",
+    role: "Ciudadano",
+  });
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
+  const onChange = (e) => {
+    const { name, value } = e.target;
+    setForm(prev => ({ ...prev, [name]: value }));
+    if (error) setError("");
+  };
+
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setError("");
-    setLoading(true);
-    if (!nombre.trim()) {
-      setError("El nombre es obligatorio");
-      setLoading(false);
+    const { nombre, documento, email, password, role } = form;
+    if (!nombre.trim() || !String(documento).trim() || !password) {
+      setError("Completa nombre, documento y contraseña.");
       return;
     }
-    if (!documento.trim()) {
-      setError("El número de documento es obligatorio");
-      setLoading(false);
+    if (password.length < 6) {
+      setError("La contraseña debe tener al menos 6 caracteres.");
       return;
     }
-    if (!password || password.length < 6) {
-      setError("La contraseña debe tener al menos 6 caracteres");
-      setLoading(false);
+    if (!/^\d+$/.test(String(documento))) {
+      setError("El documento debe contener solo números.");
       return;
     }
-    if (correo && !/\S+@\S+\.\S+/.test(correo)) {
-      setError("El correo electrónico no es válido");
-      setLoading(false);
+    const raw = localStorage.getItem("users");
+    const users = raw ? JSON.parse(raw) : [];
+    if (users.some(u => String(u.documento) === String(documento))) {
+      setError("Ya existe un usuario con ese número de documento.");
       return;
     }
-    try {
-      await register({ name: nombre.trim(), doc: documento.trim(), email: correo.trim(), password, role: rol === "Ciudadano" ? "citizen" : "admin" });
-      setTimeout(()=>navigate("/login", { replace:true }), 800);
-      setLoading(false);
-    } catch (error) {
-      setError(error.message || "Error al registrarse");
-      setLoading(false);
-    }
+    users.push({
+      id: Date.now(),
+      nombre: nombre.trim(),
+      documento: String(documento).trim(),
+      email: email.trim(),
+      password,
+      role,
+    });
+    localStorage.setItem("users", JSON.stringify(users));
+    navigate("/login");
   };
 
   return (
@@ -55,72 +59,77 @@ export default function Register() {
 <h1 id="registerTitle" className="auth-card__title">Crear cuenta</h1>
 <p className="auth-card__subtitle">Completa los campos para registrarte.</p>
 </header>
-{error && <div className="auth-alert">{error}</div>}
+ {error ? <div className="alert alert-error">{error}</div> : null}
 <form onSubmit={handleSubmit}>
 <div className="auth-card__group">
 <label className="auth-label" htmlFor="name">Nombre completo</label>
-<input
-id="name"
-className="auth-input"
-type="text"
-placeholder="Tu nombre"
-value={nombre}
-onChange={e => setNombre(e.target.value)}
-required
-/>
+ <input
+ id="name"
+ className="auth-input"
+ type="text"
+ placeholder="Tu nombre"
+ name="nombre"
+ value={form.nombre}
+ onChange={onChange}
+ required
+ />
 </div>
 <div className="auth-card__group">
 <label className="auth-label" htmlFor="doc">Número de documento</label>
-<input
-id="doc"
-className="auth-input"
-type="text"
-placeholder="123456789"
-value={documento}
-onChange={e => setDocumento(e.target.value)}
-required
-/>
+ <input
+ id="doc"
+ className="auth-input"
+ type="text"
+ placeholder="123456789"
+ name="documento"
+ value={form.documento}
+ onChange={onChange}
+ required
+ />
 </div>
 <div className="auth-card__group">
 <label className="auth-label" htmlFor="mail">Correo (opcional)</label>
-<input
-id="mail"
-className="auth-input"
-type="email"
-placeholder="tucorreo@correo.com"
-value={correo}
-onChange={e => setCorreo(e.target.value)}
-/>
+ <input
+ id="mail"
+ className="auth-input"
+ type="email"
+ placeholder="tucorreo@correo.com"
+ name="email"
+ value={form.email}
+ onChange={onChange}
+ />
 </div>
 <div className="auth-card__group">
 <label className="auth-label" htmlFor="pwd">Contraseña</label>
-<input
-id="pwd"
-className="auth-input"
-type="password"
-placeholder="Mínimo 6 caracteres"
-value={password}
-onChange={e => setPassword(e.target.value)}
-required
-minLength={6}
-/>
+ <input
+ id="pwd"
+ className="auth-input"
+ type="password"
+ placeholder="Mínimo 6 caracteres"
+ name="password"
+ value={form.password}
+ onChange={onChange}
+ required
+ minLength={6}
+ />
 </div>
 {/* Mantén tu selector de rol EXACTAMENTE igual */}
 <div className="auth-card__group">
 <label className="auth-label" htmlFor="rol">Rol (solo demo)</label>
-<select
-id="rol"
-className="auth-input"
-value={rol}
-onChange={(e) => setRol(e.target.value)}
->
+ <select
+ id="rol"
+ className="auth-input"
+ name="role"
+ value={form.role}
+ onChange={onChange}
+ >
 <option>Ciudadano</option>
 <option>Administrador</option>
 </select>
 </div>
-<button className="auth-btn" type="submit" disabled={loading}>
-{loading ? 'Creando' : 'Registrarse'}
-</button>
+ <button className="auth-btn" type="submit">
+ Registrarse
+ </button>
 </form>
 <p className="auth-footer">
 ¿Ya tienes cuenta?
